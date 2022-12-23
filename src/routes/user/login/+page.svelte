@@ -1,12 +1,13 @@
-<!-- <script lang="ts">
+<script lang="ts">
+	import { enhance } from "$app/forms";
 	import { goto } from "$app/navigation";
 	import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
     import Field from "$lib/components/Field.svelte";
 	import { FieldNameRegister, FieldValidation, LoginUserForm, ToastStatus } from "$lib/interfaces/types";
-	import { login } from "$lib/services/controller";
 	import { loadingStatus, toastStatusStore } from "$lib/store/store";
 	import { assignValue, checkLength, validateEmail } from "$lib/utils/fieldHelper";
+	import type { ActionResult } from "@sveltejs/kit";
 
     let loginUserForm: LoginUserForm = new LoginUserForm('', '');
     let emailFieldValidation: FieldValidation = new FieldValidation(null, null);
@@ -28,36 +29,47 @@
         }
     }
 
-    async function submitLoginUserForm() {
-        try {
-            loadingStatus.set(true);
-            let response = await login(loginUserForm);
-            let data = JSON.parse(await response.text())
-            if (!response.ok) {
-                throw new Error(data.message)
+    async function handleRegisterResponse(result: ActionResult) {
+        if (result.type === 'success' && result.data != undefined) {
+            const res = result.data;
+            try {
+                loadingStatus.set(true);
+                if (res.status === 201) {
+                    const toast: ToastStatus = {
+                        isShown: true,
+                        isSuccess: true,
+                        delay: 3000,
+                        message: 'You are successfully logged in!'
+                    };
+                    toastStatusStore.activateToast(toast);
+                    toastStatusStore.removeToast(toast);
+                    loadingStatus.set(false);
+                    goto('/user/login');
+                } 
+                if (res.status === 400) {
+                    const toast: ToastStatus = {
+                        isShown: true,
+                        isSuccess: false,
+                        delay: 3000,
+                        message: res.data.message
+                    };
+                    toastStatusStore.activateToast(toast);
+                    toastStatusStore.removeToast(toast);
+                    loadingStatus.set(false);
+                }  
+            } catch(e: any) {
+                console.error(e);
+                const toast: ToastStatus = {
+                    isShown: true,
+                    isSuccess: false,
+                    delay: 3000,
+                    message: e.message
+                };
+                toastStatusStore.activateToast(toast)
+                toastStatusStore.removeToast(toast);
+                loadingStatus.set(false);
             }
-            const toast: ToastStatus = {
-                isShown: true,
-                isSuccess: true,
-                delay: 3000,
-                message: `You're successfully logged in!`
-            };
-            toastStatusStore.activateToast(toast);
-            toastStatusStore.removeToast(toast);
-            loadingStatus.set(false);
-            goto('/');
-        } catch(e: any) {
-            console.error(e);
-            const toast: ToastStatus = {
-                isShown: true,
-                isSuccess: false,
-                delay: 3000,
-                message: e.message
-            };
-            toastStatusStore.activateToast(toast)
-            toastStatusStore.removeToast(toast);
-            loadingStatus.set(false);
-        }
+        }        
     }
 </script>
 
@@ -67,7 +79,12 @@
     </div>
     <div slot="card-body">
         <div class="card-body">
-            <form on:submit|preventDefault={submitLoginUserForm}>
+            <form 
+                action="?/login"
+                method="POST"
+                use:enhance={() => {
+                    return ({ result}) => handleRegisterResponse(result);
+                }}>
                 <Field 
                     id="email"
                     type="email" 
@@ -142,4 +159,4 @@
         margin-top: -1rem;
         text-align: center;
     }
-</style> -->
+</style>

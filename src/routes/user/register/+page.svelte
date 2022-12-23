@@ -46,7 +46,7 @@
 		}
     }
 
-    async function handleRegisterResponse(form: HTMLFormElement, result: ActionResult) {
+    async function handleRegisterResponse(result: ActionResult) {
         if (result.type === 'success' && result.data != undefined) {
             const res = result.data;
             try {
@@ -87,7 +87,6 @@
                 loadingStatus.set(false);
             }
         }
-        
     }
 </script>
 
@@ -101,7 +100,7 @@
                 action="?/register"
                 method="POST"
                 use:enhance={() => {
-                    return ({ form, result}) => handleRegisterResponse(form, result);
+                    return ({ result}) => handleRegisterResponse(result);
                 }}>
                 <Field 
                     id="username"

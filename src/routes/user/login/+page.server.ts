@@ -1,13 +1,12 @@
 import { deserialize } from '$app/forms';
-import { REGISTER_URL } from '$env/static/private';
-import type { ActionResult } from '@sveltejs/kit';
+import { LOGIN_URL } from '$env/static/private';
+import type { ActionResult, Actions } from '@sveltejs/kit';
 import { api } from '../../api';
-import type { Actions } from './$types';
 
 export const actions: Actions = {
-    register: async ({ request }) => {
+    login: async ({ request }) => {
         const form = await request.formData();
-        let response = await api('POST', form, REGISTER_URL); 
+        let response = await api('POST', form, LOGIN_URL); 
         if (response.status === 400) {
             const actionResult: ActionResult = {
                 status: 400,
