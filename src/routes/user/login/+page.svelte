@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { goto } from "$app/navigation";
 	import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
@@ -57,43 +57,6 @@
             toastStatusStore.activateToast(toast)
             toastStatusStore.removeToast(toast);
             loadingStatus.set(false);
-        }
-
-
-
-        try {
-            loadingStatus.set(true);
-            const response = login(loginUserForm);
-            response
-                .then(response => response.json())
-                .then(response => {
-                    const data = JSON.parse(JSON.stringify(response));
-                    console.log(data);
-                    const toast: ToastStatus = {
-                        isShown: true,
-                        isSuccess: true,
-                        delay: 3000,
-                        message: 'You are logged in!'
-                    };
-                    toastStatusStore.activateToast(toast);
-                    toastStatusStore.removeToast(toast);
-                    loadingStatus.set(false);
-                    goto('/');
-                })
-                .catch((e: Error) => {
-                    console.error(e);
-                    const toast: ToastStatus = {
-                        isShown: true,
-                        isSuccess: false,
-                        delay: 3000,
-                        message: 'User cannot be logged in!'
-                    };
-                    toastStatusStore.activateToast(toast)
-                    toastStatusStore.removeToast(toast);
-                    loadingStatus.set(false);
-                }); 
-        } catch(e) {
-            console.error(e)
         }
     }
 </script>
@@ -179,4 +142,4 @@
         margin-top: -1rem;
         text-align: center;
     }
-</style>
+</style> -->

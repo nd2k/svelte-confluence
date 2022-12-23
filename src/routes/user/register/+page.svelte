@@ -3,10 +3,14 @@
 	import Button from "$lib/components/Button.svelte";
     import Card from "$lib/components/Card.svelte";
     import Field from "$lib/components/Field.svelte";
-	import { FieldNameRegister, FieldValidation, RegisterUserForm, ToastStatus } from "$lib/interfaces/types";
+	import { FieldNameRegister, FieldValidation, RegisterUserForm, ToastStatus, type ErrorMessage } from "$lib/interfaces/types";
 	import { loadingStatus, toastStatusStore } from '$lib/store/store';
-	import { register } from "$lib/services/controller";
+    import type { PageData, ActionData } from './$types';
+    import { applyAction, enhance } from '$app/forms';
+  
+
 	import { assignValue, checkLength, comparePasswords, validateEmail } from "$lib/utils/fieldHelper";
+	import type { ActionResult } from '@sveltejs/kit';
 
     let registerUserForm: RegisterUserForm = new RegisterUserForm('', '', '');
     let usernameFieldValidation: FieldValidation =  new FieldValidation(null, null);
@@ -42,36 +46,48 @@
 		}
     }
 
-    async function submitRegisterUserForm() {
-        try {
-            loadingStatus.set(true);
-            let response = await register(registerUserForm);
-            let data = JSON.parse(await response.text())
-            if (!response.ok) {
-                throw new Error(data.message)
+    async function handleRegisterResponse(form: HTMLFormElement, result: ActionResult) {
+        if (result.type === 'success' && result.data != undefined) {
+            const res = result.data;
+            try {
+                loadingStatus.set(true);
+                if (res.status === 201) {
+                    const toast: ToastStatus = {
+                        isShown: true,
+                        isSuccess: true,
+                        delay: 3000,
+                        message: 'Your account has been successfully created!'
+                    };
+                    toastStatusStore.activateToast(toast);
+                    toastStatusStore.removeToast(toast);
+                    loadingStatus.set(false);
+                    goto('/user/login');
+                } 
+                if (res.status === 400) {
+                    const toast: ToastStatus = {
+                        isShown: true,
+                        isSuccess: false,
+                        delay: 3000,
+                        message: res.data.message
+                    };
+                    toastStatusStore.activateToast(toast);
+                    toastStatusStore.removeToast(toast);
+                    loadingStatus.set(false);
+                }  
+            } catch(e: any) {
+                console.error(e);
+                const toast: ToastStatus = {
+                    isShown: true,
+                    isSuccess: false,
+                    delay: 3000,
+                    message: e.message
+                };
+                toastStatusStore.activateToast(toast)
+                toastStatusStore.removeToast(toast);
+                loadingStatus.set(false);
             }
-            const toast: ToastStatus = {
-                isShown: true,
-                isSuccess: true,
-                delay: 3000,
-                message: 'Your account has been successfully created!'
-            };
-            toastStatusStore.activateToast(toast);
-            toastStatusStore.removeToast(toast);
-            loadingStatus.set(false);
-            goto('/user/login');
-        } catch(e: any) {
-            console.error(e);
-            const toast: ToastStatus = {
-                isShown: true,
-                isSuccess: false,
-                delay: 3000,
-                message: e.message
-            };
-            toastStatusStore.activateToast(toast)
-            toastStatusStore.removeToast(toast);
-            loadingStatus.set(false);
         }
+        
     }
 </script>
 
@@ -81,7 +97,12 @@
     </div>
     <div slot="card-body">
         <div class="card-body">
-            <form on:submit|preventDefault={submitRegisterUserForm}>
+            <form 
+                action="?/register"
+                method="POST"
+                use:enhance={() => {
+                    return ({ form, result}) => handleRegisterResponse(form, result);
+                }}>
                 <Field 
                     id="username"
                     type="text" 

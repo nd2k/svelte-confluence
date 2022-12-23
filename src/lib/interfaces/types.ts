@@ -84,3 +84,13 @@ export class User {
         this.refreshToken = refreshToken;
     }
 }
+
+export class ErrorMessage {
+    httpStatus: string;
+    message: string;
+
+    constructor(httpStatus: string, message: string) {
+        this.httpStatus = httpStatus;
+        this.message = message;
+    }
+}
